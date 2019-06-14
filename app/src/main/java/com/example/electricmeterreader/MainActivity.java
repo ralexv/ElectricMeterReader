@@ -1,7 +1,11 @@
 package com.example.electricmeterreader;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -11,11 +15,13 @@ import android.view.*;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import androidx.core.app.ActivityCompat;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -23,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Element [] nets;
     private WifiManager wifiManager;
-    private List<ScanResult> wifiList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        registerReceiver(wifiScanReceiver, intentFilter);
+
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -64,13 +74,35 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    public void detectWifi(){
-        this.wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        this.wifiList = this.wifiManager.getScanResults();
-        boolean res = this.wifiManager.startScan();
-        Log.d("WifiList ", "There are " + this.wifiList.size() + " networks and res " + res + " !");
 
+    private BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (success) {
+                scanSuccess();
+            } else {
+                // scan failure handling
+                scanFailure();
+            }
+        }
+    };
 
+    private void scanSuccess() {
+        Log.d("ScanResult", "Success");
+        showScanResult(wifiManager.getScanResults());
+    }
+
+    private void scanFailure() {
+        // handle failure: new scan did NOT succeed
+        // consider using old scan results: these are the OLD results!
+        Log.d("ScanResult", "Failure");
+        showScanResult(wifiManager.getScanResults());
+    }
+
+    private void showScanResult(@NotNull List<ScanResult> wifiList)
+    {
         Log.d("TAG", wifiList.toString());
 
         this.nets = new Element[wifiList.size()];
@@ -91,6 +123,21 @@ public class MainActivity extends AppCompatActivity {
         ListView netList = (ListView) findViewById(R.id.listItem);
         netList.setAdapter(adapterElements);
     }
+
+    public void detectWifi(){
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION }, 1);
+        this.wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        boolean success = wifiManager.startScan();
+        if (!success) {
+            // scan failure handling
+            Log.d("Scan", "Start scan failed");
+            scanFailure();
+        }
+
+    }
+
     class AdapterElements extends ArrayAdapter<Object> {
         Activity context;
 
