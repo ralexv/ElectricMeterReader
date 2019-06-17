@@ -3,9 +3,9 @@ package com.example.electricmeterreader;
 public class Element {
     private String title;
     private String security;
-    private String level;
+    private int level;
 
-    public Element(String title, String security, String level) {
+    public Element(String title, String security, int level) {
         this.title = title;
         this.security = security;
         this.level = level;
@@ -19,7 +19,7 @@ public class Element {
         return security;
     }
 
-    public String getLevel() {
+    public int getLevel() {
         return level;
     }
 }
