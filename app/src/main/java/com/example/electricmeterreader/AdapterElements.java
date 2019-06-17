@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 public class AdapterElements extends ArrayAdapter<Object> {
     private Activity context;
+    final private int HihgLevelTreshold = -50;
+    final private int MiddleLevelTreshold = -80;
 
     public AdapterElements(Activity context, Element [] elements) {
         super(context, R.layout.items, elements);
@@ -30,11 +32,11 @@ public class AdapterElements extends ArrayAdapter<Object> {
 
         TextView tvLevel = (TextView)convertView.findViewById(R.id.tvLevel);
         int i = element.getLevel();
-        if (i>-50){
+        if (i>HihgLevelTreshold){
             tvLevel.setText("High");
-        } else if (i<=-50 && i>-80){
+        } else if (i<=HihgLevelTreshold && i>MiddleLevelTreshold){
             tvLevel.setText("Middle");
-        } else if (i<=-80){
+        } else if (i<=MiddleLevelTreshold){
             tvLevel.setText("Low");
         }
         return convertView;
