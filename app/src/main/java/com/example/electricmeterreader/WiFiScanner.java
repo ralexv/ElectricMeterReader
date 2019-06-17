@@ -63,8 +63,13 @@ public class WiFiScanner {
         processScanResult(wifiManager.getScanResults());
     }
 
-    private void processScanResult(@NotNull List<ScanResult> wifiList)
+    private void processScanResult(List<ScanResult> wifiList)
     {
+        if (wifiList == null)
+        {
+            Log.d("TAG", "[No list]");
+            callback.OnScanResult(new Element[0]);
+        }
         Log.d("TAG", wifiList.toString());
 
         Element [] elements = new Element[wifiList.size()];
